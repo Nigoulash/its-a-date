@@ -1,56 +1,65 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>mystisk nedräkning</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      text-align: center;
-      background-color: #111;
-      color: white;
-      margin-top: 300px;
-    }
-    #countdown {
-      font-size: 48px;
-      margin-top: 20px;
-    }
-  </style>
+    <title>mystisk nedräkning</title>
+    <script src="https://cdn.jsdelivr.net/npm/luxon@3/build/global/luxon.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            background: #111;
+            color: white;
+            margin-top: 100px;
+        }
+
+        #countdown {
+            font-size: 40px;
+            margin-top: 20px;
+        }
+    </style>
 </head>
 <body>
 
-  <h1></h1>
-  <div id="countdown"></div>
+    <h1>Countdown</h1>
+    <div id="countdown"></div>
 
- <script>
-  // 🔥 SET YOUR DATE HERE
-  const targetDate = new Date("2026-04-25T20:00:00Z").getTime();
+    <script>
+        const { DateTime } = luxon;
 
-  function updateCountdown() {
-    const now = new Date().getTime();
-    const difference = targetDate - now;
+        // 🔥 Set your target date here (UTC example)
+        const target = DateTime.fromISO("2026-04-25T20:00:00", { zone: "Europe/Berlin" });
 
-    if (difference <= 0) {
-      document.getElementById("countdown").innerHTML = "Time's up! 🎉";
-      return;
-    }
+        function updateCountdown() {
+            const now = DateTime.now().toUTC();
 
-    const totalSeconds = Math.floor(difference / 1000);
+            if (now >= target) {
+                document.getElementById("countdown").innerHTML = "Time's up! 🎉";
+                return;
+            }
 
-    const weeks = Math.floor(totalSeconds / (60 * 60 * 24 * 7));
-    const days = Math.floor((totalSeconds % (60 * 60 * 24 * 7)) / (60 * 60 * 24));
-    const hours = Math.floor((totalSeconds % (60 * 60 * 24)) / (60 * 60));
-    const minutes = Math.floor((totalSeconds % (60 * 60)) / 60);
-    const seconds = totalSeconds % 60;
+            const diff = target.diff(now, [
+                "months",
+                "weeks",
+                "days",
+                "hours",
+                "minutes",
+                "seconds"
+            ]).toObject();
 
-    document.getElementById("countdown").innerHTML =
-      `${weeks}w ${days}d ${hours}h ${minutes}m ${seconds}s`;
-  }
+            const months = Math.floor(diff.months);
+            const weeks = Math.floor(diff.weeks);
+            const days = Math.floor(diff.days);
+            const hours = Math.floor(diff.hours);
+            const minutes = Math.floor(diff.minutes);
+            const seconds = Math.floor(diff.seconds);
 
-  setInterval(updateCountdown, 1000);
-  updateCountdown();
-</script>
+            document.getElementById("countdown").innerHTML =
+                `${months}mån ${weeks}v ${days}d ${hours}h ${minutes}m ${seconds}s`;
+        }
+
+        setInterval(updateCountdown, 1000);
+        updateCountdown();
+    </script>
 
 </body>
-
 </html>
-
