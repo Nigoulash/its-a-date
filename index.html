@@ -22,58 +22,57 @@
   <div id="countdown"></div>
 
   <script>
-    // 🔥 SET YOUR DATE HERE
-    const targetDate = new Date("2026-04-25T20:00:00Z").getTime();
+      const targetDate = new Date("2026-12-31T23:59:59Z");
 
-    function updateCountdown() {
-        const now = new Date().getTime();
-        const difference = targetDate - now;
+      function updateCountdown() {
+          const now = new Date();
 
-        if (difference <= 0) {
-            document.getElementById("countdown").innerHTML = "Tiden är inne.";
-            return;
-        }
-        // ----- 1️⃣ Calculate total calendar months -----
-        let months =
-            (targetDate.getFullYear() - now.getFullYear()) * 12 +
-            (targetDate.getMonth() - now.getMonth());
+          if (now >= targetDate) {
+              document.getElementById("countdown").innerHTML = "Time's up! 🎉";
+              return;
+          }
 
-        let days = targetDate.getDate() - now.getDate();
+          // ----- 1️⃣ Calculate total calendar months -----
+          let months =
+              (targetDate.getFullYear() - now.getFullYear()) * 12 +
+              (targetDate.getMonth() - now.getMonth());
 
-        // Borrow a month if needed
-        if (days < 0) {
-            months--;
+          let days = targetDate.getDate() - now.getDate();
 
-            const previousMonth = new Date(
-                now.getFullYear(),
-                now.getMonth() + 1,
-                0
-            );
+          // Borrow a month if needed
+          if (days < 0) {
+              months--;
 
-            days += previousMonth.getDate();
-        }
+              const previousMonth = new Date(
+                  now.getFullYear(),
+                  now.getMonth() + 1,
+                  0
+              );
 
-        // ----- 2️⃣ Calculate remaining time after removing months -----
-        const tempDate = new Date(now);
-        tempDate.setMonth(tempDate.getMonth() + months);
+              days += previousMonth.getDate();
+          }
 
-        const remainingMs = targetDate - tempDate;
+          // ----- 2️⃣ Calculate remaining time after removing months -----
+          const tempDate = new Date(now);
+          tempDate.setMonth(tempDate.getMonth() + months);
 
-        const totalDaysRemaining = Math.floor(remainingMs / (1000 * 60 * 60 * 24));
+          const remainingMs = targetDate - tempDate;
 
-        const weeks = Math.floor(totalDaysRemaining / 7);
-        const remainingDays = totalDaysRemaining % 7;
+          const totalDaysRemaining = Math.floor(remainingMs / (1000 * 60 * 60 * 24));
 
-        const hours = Math.floor((remainingMs / (1000 * 60 * 60)) % 24);
-        const minutes = Math.floor((remainingMs / (1000 * 60)) % 60);
-        const seconds = Math.floor((remainingMs / 1000) % 60);
+          const weeks = Math.floor(totalDaysRemaining / 7);
+          const remainingDays = totalDaysRemaining % 7;
 
-        document.getElementById("countdown").innerHTML =
-        `${months}må ${weeks}v ${remainingDays}d ${hours}h ${minutes}m ${seconds}s`;
-    }
+          const hours = Math.floor((remainingMs / (1000 * 60 * 60)) % 24);
+          const minutes = Math.floor((remainingMs / (1000 * 60)) % 60);
+          const seconds = Math.floor((remainingMs / 1000) % 60);
 
-    setInterval(updateCountdown, 1000);
-    updateCountdown();
+          document.getElementById("countdown").innerHTML =
+              `${months}mo ${weeks}w ${remainingDays}d ${hours}h ${minutes}m ${seconds}s`;
+      }
+
+      setInterval(updateCountdown, 1000);
+      updateCountdown();
   </script>
 
 </body>
