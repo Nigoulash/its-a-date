@@ -33,11 +33,13 @@
         document.getElementById("countdown").innerHTML = "Tiden är inne.";
         return;
       }
-      const weeks = Math.floor(difference / (1000 * 60 * 60));
-      const days = Math.floor((difference % (1000 * 60 * 60)) / (1000 * 60 * 60 * 24));
-      const hours = Math.floor((difference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-      const minutes = Math.floor((difference % (1000 * 60 * 60)) / (1000 * 60));
-      const seconds = Math.floor((difference % (1000 * 60)) / 1000);
+      const totalSeconds = Math.floor(difference / 1000);
+  
+      const weeks = Math.floor(totalSeconds / (60 * 60 * 24 * 7));
+      const days = Math.floor((totalSeconds % (60 * 60 * 24 * 7)) / (60 * 60 * 24));
+      const hours = Math.floor((totalSeconds % (60 * 60 * 24)) / (60 * 60));
+      const minutes = Math.floor((totalSeconds % (60 * 60)) / 60);
+      const seconds = totalSeconds % 60;
 
       document.getElementById("countdown").innerHTML =
         `${weeks}v ${days}d ${hours}h ${minutes}m ${seconds}s`;
@@ -50,5 +52,6 @@
 </body>
 
 </html>
+
 
 
