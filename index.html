@@ -22,13 +22,13 @@
   <div id="countdown"></div>
 
   <script>
-      const targetDate = new Date("2026-12-31T23:59:59Z");
+      const targetDate = new Date("2026-04-25T20:00:00Z");
 
       function updateCountdown() {
           const now = new Date();
 
           if (now >= targetDate) {
-              document.getElementById("countdown").innerHTML = "Time's up! 🎉";
+              document.getElementById("countdown").innerHTML = "tiden är inne.";
               return;
           }
 
@@ -68,7 +68,7 @@
           const seconds = Math.floor((remainingMs / 1000) % 60);
 
           document.getElementById("countdown").innerHTML =
-              `${months}mo ${weeks}w ${remainingDays}d ${hours}h ${minutes}m ${seconds}s`;
+              `${months}må ${weeks}v ${remainingDays}d ${hours}h ${minutes}m ${seconds}s`;
       }
 
       setInterval(updateCountdown, 1000);
