@@ -33,27 +33,27 @@
         document.getElementById("countdown").innerHTML = "Tiden är inne.";
         return;
           // Calculate total months difference
-    let months =
-      (targetDate.getMonth() - now.getMonth());
-
-    let days = targetDate.getDate() - now.getDate();
-
-    // If days negative, borrow one month
-    if (days < 0) {
-      months--;
-
-      const previousMonth = new Date(
-        now.getMonth() + 1,
-        0
-      );
-      days += previousMonth.getDate();
-    }
-
-    const timeDifference = targetDate - now;
-
-    const hours = Math.floor((timeDifference / (1000 * 60 * 60)) % 24);
-    const minutes = Math.floor((timeDifference / (1000 * 60)) % 60);
-    const seconds = Math.floor((timeDifference / 1000) % 60);
+      let months =
+        (targetDate.getMonth() - now.getMonth());
+    
+      let days = targetDate.getDate() - now.getDate();
+    
+      // If days negative, borrow one month
+      if (days < 0) {
+        months--;
+    
+        const previousMonth = new Date(
+          now.getMonth() + 1,
+          0
+        );
+        days += previousMonth.getDate();
+      }
+    
+      const timeDifference = targetDate - now;
+    
+      const hours = Math.floor((timeDifference / (1000 * 60 * 60)) % 24);
+      const minutes = Math.floor((timeDifference / (1000 * 60)) % 60);
+      const seconds = Math.floor((timeDifference / 1000) % 60);
 
       document.getElementById("countdown").innerHTML =
         `${months}må ${weeks}v ${days}d ${hours}h ${minutes}m ${seconds}s`;
@@ -66,6 +66,7 @@
 </body>
 
 </html>
+
 
 
 
