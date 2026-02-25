@@ -29,9 +29,10 @@
       const now = new Date().getTime();
       const difference = targetDate - now;
 
-      if (difference <= 0) {
-        document.getElementById("countdown").innerHTML = "Tiden är inne.";
-        return;
+        if (difference <= 0) {
+            document.getElementById("countdown").innerHTML = "Tiden är inne.";
+            return;
+        }
           // Calculate total months difference
       let months =
         (targetDate.getMonth() - now.getMonth());
@@ -67,11 +68,4 @@
 </body>
 
 </html>
-
-
-
-
-
-
-
 
