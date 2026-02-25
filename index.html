@@ -21,59 +21,34 @@
   <h1></h1>
   <div id="countdown"></div>
 
-  <script>
-      const targetDate = new Date("2026-04-25T20:00:00");
+ <script>
+  // 🔥 SET YOUR DATE HERE
+  const targetDate = new Date("2026-04-25T20:00:00Z").getTime();
 
-      function updateCountdown() {
-          const now = new Date();
+  function updateCountdown() {
+    const now = new Date().getTime();
+    const difference = targetDate - now;
 
-          if (now >= targetDate) {
-              document.getElementById("countdown").innerHTML = "tiden är inne.";
-              return;
-          }
+    if (difference <= 0) {
+      document.getElementById("countdown").innerHTML = "Time's up! 🎉";
+      return;
+    }
 
-          // ----- 1️⃣ Calculate total calendar months -----
-          let months =
-              (targetDate.getFullYear() - now.getFullYear()) * 12 +
-              (targetDate.getMonth() - now.getMonth());
+    const totalSeconds = Math.floor(difference / 1000);
 
-          let days = targetDate.getDate() - now.getDate();
+    const weeks = Math.floor(totalSeconds / (60 * 60 * 24 * 7));
+    const days = Math.floor((totalSeconds % (60 * 60 * 24 * 7)) / (60 * 60 * 24));
+    const hours = Math.floor((totalSeconds % (60 * 60 * 24)) / (60 * 60));
+    const minutes = Math.floor((totalSeconds % (60 * 60)) / 60);
+    const seconds = totalSeconds % 60;
 
-          // Borrow a month if needed
-          if (days < 0) {
-              months--;
+    document.getElementById("countdown").innerHTML =
+      `${weeks}w ${days}d ${hours}h ${minutes}m ${seconds}s`;
+  }
 
-              const previousMonth = new Date(
-                  now.getFullYear(),
-                  now.getMonth() + 1,
-                  0
-              );
-
-              days += previousMonth.getDate();
-          }
-
-          // ----- 2️⃣ Calculate remaining time after removing months -----
-          const tempDate = new Date(now);
-          tempDate.setMonth(tempDate.getMonth() + months);
-
-          const remainingMs = targetDate - tempDate;
-
-          const totalDaysRemaining = Math.floor(remainingMs / (1000 * 60 * 60 * 24));
-
-          const weeks = Math.floor(totalDaysRemaining / 7);
-          const remainingDays = totalDaysRemaining % 7;
-
-          const hours = Math.floor((remainingMs / (1000 * 60 * 60)) % 24);
-          const minutes = Math.floor((remainingMs / (1000 * 60)) % 60);
-          const seconds = Math.floor((remainingMs / 1000) % 60);
-
-          document.getElementById("countdown").innerHTML =
-              `${months}mån ${weeks}v ${remainingDays}d ${hours}h ${minutes}m ${seconds}s`;
-      }
-
-      setInterval(updateCountdown, 1000);
-      updateCountdown();
-  </script>
+  setInterval(updateCountdown, 1000);
+  updateCountdown();
+</script>
 
 </body>
 
