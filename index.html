@@ -26,38 +26,49 @@
     const targetDate = new Date("2026-04-25T20:00:00Z").getTime();
 
     function updateCountdown() {
-      const now = new Date().getTime();
-      const difference = targetDate - now;
+        const now = new Date().getTime();
+        const difference = targetDate - now;
 
         if (difference <= 0) {
             document.getElementById("countdown").innerHTML = "Tiden är inne.";
             return;
         }
-          // Calculate total months difference
-      let months =
-        (targetDate.getMonth() - now.getMonth());
-    
-      let days = targetDate.getDate() - now.getDate();
-    
-      // If days negative, borrow one month
-      if (days < 0) {
-        months--;
-    
-        const previousMonth = new Date(
-          now.getMonth() + 1,
-          0
-        );
-        days += previousMonth.getDate();
-      }
-    
-      const timeDifference = targetDate - now;
-        
-      const weeks = Math.floor((timeDifference / (1000 * 60 * 60)) % 24 * 7);
-      const hours = Math.floor((timeDifference / (1000 * 60 * 60)) % 24);
-      const minutes = Math.floor((timeDifference / (1000 * 60)) % 60);
-      const seconds = Math.floor((timeDifference / 1000) % 60);
+        // ----- 1️⃣ Calculate total calendar months -----
+        let months =
+            (targetDate.getFullYear() - now.getFullYear()) * 12 +
+            (targetDate.getMonth() - now.getMonth());
 
-      document.getElementById("countdown").innerHTML =
+        let days = targetDate.getDate() - now.getDate();
+
+        // Borrow a month if needed
+        if (days < 0) {
+            months--;
+
+            const previousMonth = new Date(
+                now.getFullYear(),
+                now.getMonth() + 1,
+                0
+            );
+
+            days += previousMonth.getDate();
+        }
+
+        // ----- 2️⃣ Calculate remaining time after removing months -----
+        const tempDate = new Date(now);
+        tempDate.setMonth(tempDate.getMonth() + months);
+
+        const remainingMs = targetDate - tempDate;
+
+        const totalDaysRemaining = Math.floor(remainingMs / (1000 * 60 * 60 * 24));
+
+        const weeks = Math.floor(totalDaysRemaining / 7);
+        const remainingDays = totalDaysRemaining % 7;
+
+        const hours = Math.floor((remainingMs / (1000 * 60 * 60)) % 24);
+        const minutes = Math.floor((remainingMs / (1000 * 60)) % 60);
+        const seconds = Math.floor((remainingMs / 1000) % 60);
+
+        document.getElementById("countdown").innerHTML =
         `${months}må ${weeks}v ${days}d ${hours}h ${minutes}m ${seconds}s`;
     }
 
