@@ -9,12 +9,11 @@
             text-align: center;
             background: #111;
             color: white;
-            margin-top: 300px;
         }
 
         #countdown {
             font-size: 40px;
-            margin-top: 20px;
+            margin-top: 300px;
         }
     </style>
 </head>
@@ -22,42 +21,133 @@
 
     <div id="countdown"></div>
 
+    <div id="code-section" style="display:none; margin-top: 30px;">
+        <p>Problem vid autentisering. Ange överskridningskod för att återuppta nedräkningen.</p>
+        <input id="code-input" type="text" maxlength="10" autofocus />
+        <p id="code-message"></p>
+    </div>
+
+    <div id="video-section" style="display:none;">
+        <!--
+            Replace "your-video.mp4" with the path to your video file.
+            If the file is in the same folder as index.html, just the filename is enough.
+        -->
+        <video id="reveal-video" width="100%" controls>
+            <source src="your-video.mp4" type="video/mp4">
+        </video>
+    </div>
+
     <script>
         const { DateTime } = luxon;
 
-        // 🔥 Set your target date here (UTC example)
-        const target = DateTime.fromISO("2026-02-25T22:12:00", { zone: "Europe/Berlin" });
+        // ── Settings ──────────────────────────────────────────────
+        const TEST_MODE = true;      // ← Set to false for the real event
+        const TEST_SECONDS = 10;        // In test mode: seconds from now until the target
+
+        const target = TEST_MODE
+            ? DateTime.now().setZone("Europe/Stockholm").plus({ seconds: TEST_SECONDS })
+            : DateTime.fromISO("2026-04-25T20:00:00", { zone: "Europe/Stockholm" });
+        const SECRET_CODE = "2504";    // Change this to your actual code
+        const FREEZE_SECONDS = 6;
+        // ─────────────────────────────────────────────────────────
+
+        let frozen = false;
+
+        // In test mode, clear saved state on every page load so each refresh is a fresh test
+        if (TEST_MODE) {
+            sessionStorage.removeItem("codeSolved");
+            sessionStorage.removeItem("codeFrozen");
+        }
+
+        const alreadySolved = sessionStorage.getItem("codeSolved") === "true";
+        const alreadyFrozen = sessionStorage.getItem("codeFrozen") === "true";
+
+        if (alreadySolved) {
+            // Code was already entered — jump straight into the final countdown
+            startFinalCountdown(FREEZE_SECONDS);
+        } else if (alreadyFrozen) {
+            // Page was refreshed while frozen — show frozen clock and code entry immediately, no delay
+            document.getElementById("countdown").innerHTML = `0mån 0v 0d 0h 0m ${FREEZE_SECONDS}s`;
+            showCodeEntry();
+        } else {
+            // Normal startup — run the date-based countdown
+            setInterval(updateCountdown, 1000);
+            updateCountdown();
+        }
+
+        // ── Phase 1: count down to the target date ───────────────
 
         function updateCountdown() {
-            const now = DateTime.now().toUTC();
+            if (frozen) return;
 
-            if (now >= target - 6000) {
-                document.getElementById("countdown").innerHTML = "0mån 0v 0d 0h 0m 6s";
+            const now = DateTime.now().setZone("Europe/Stockholm");
+            const totalSeconds = target.diff(now, "seconds").seconds;
+
+            if (totalSeconds <= FREEZE_SECONDS) {
+                frozen = true;
+                // Save that we have entered the frozen state
+                sessionStorage.setItem("codeFrozen", "true");
+                // Show the frozen display
+                document.getElementById("countdown").innerHTML =
+                    `0mån 0v 0d 0h 0m ${FREEZE_SECONDS}s`;
+                // Show code entry after 2 second pause (first time only)
+                setTimeout(showCodeEntry, 2000);
                 return;
             }
 
-            const diff = target.diff(now, [
-                "months",
-                "weeks",
-                "days",
-                "hours",
-                "minutes",
-                "seconds"
-            ]).toObject();
-
-            const months = Math.floor(diff.months);
-            const weeks = Math.floor(diff.weeks);
-            const days = Math.floor(diff.days);
-            const hours = Math.floor(diff.hours);
-            const minutes = Math.floor(diff.minutes);
-            const seconds = Math.floor(diff.seconds);
+            const diff = target.diff(now, ["months", "weeks", "days", "hours", "minutes", "seconds"]).toObject();
 
             document.getElementById("countdown").innerHTML =
-                `${months}mån ${weeks}v ${days}d ${hours}h ${minutes}m ${seconds}s`;
+                `${Math.floor(diff.months)}mån ${Math.floor(diff.weeks)}v ${Math.floor(diff.days)}d ${Math.floor(diff.hours)}h ${Math.floor(diff.minutes)}m ${Math.floor(diff.seconds)}s`;
         }
 
-        setInterval(updateCountdown, 1000);
-        updateCountdown();
+        function showCodeEntry() {
+            document.getElementById("code-section").style.display = "block";
+            document.getElementById("code-input").focus();
+        }
+
+        // Listen for Enter key in the input field
+        document.getElementById("code-input").addEventListener("keydown", function (e) {
+            if (e.key === "Enter") {
+                checkCode();
+            }
+        });
+
+        function checkCode() {
+            const entered = document.getElementById("code-input").value;
+
+            if (entered === SECRET_CODE) {
+                sessionStorage.setItem("codeSolved", "true");
+                document.getElementById("code-section").style.display = "none";
+                startFinalCountdown(FREEZE_SECONDS);
+
+            } else {
+                document.getElementById("code-message").textContent = "Fel kod. Försök igen.";
+                document.getElementById("code-input").value = "";
+                document.getElementById("code-input").focus();
+            }
+        }
+
+        // ── Phase 2: final countdown from FREEZE_SECONDS to zero ─
+        function startFinalCountdown(secondsLeft) {
+            document.getElementById("countdown").innerHTML =
+                `0mån 0v 0d 0h 0m ${secondsLeft}s`;
+
+            if (secondsLeft <= 0) {
+                setTimeout(function () {
+                    document.getElementById("countdown").style.display = "none";
+                    document.getElementById("code-section").style.display = "none";
+                    document.getElementById("video-section").style.display = "block";
+                    document.getElementById("reveal-video").play();
+                }, 2000);
+                return;
+            }
+
+            setTimeout(function () {
+                startFinalCountdown(secondsLeft - 1);
+            }, 1000);
+        }
+
     </script>
 
 </body>
