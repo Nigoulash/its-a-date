@@ -27,12 +27,14 @@
         <p id="code-message"></p>
     </div>
 
+    <!-- <div id="correct-code" color="green"></div> -->
+
     <div id="video-section" style="display:none;">
         <!--
             Replace "your-video.mp4" with the path to your video file.
             If the file is in the same folder as index.html, just the filename is enough.
         -->
-        <video id="reveal-video" width="700" controls>
+        <video id="reveal-video" width="1300" controls>
             <source src="your-video.mp4" type="video/mp4">
         </video>
     </div>
@@ -42,22 +44,25 @@
 
         // ── Settings ──────────────────────────────────────────────
         const TEST_MODE = true;      // ← Set to false for the real event
-        const TEST_SECONDS = 10;        // In test mode: seconds from now until the target
+        const TEST_SECONDS = 5;        // In test mode: seconds from now until the target
 
         const target = TEST_MODE
             ? DateTime.now().setZone("Europe/Stockholm").plus({ seconds: TEST_SECONDS })
             : DateTime.fromISO("2026-04-25T20:00:00", { zone: "Europe/Stockholm" });
         const SECRET_CODE = "2504";    // Change this to your actual code
-        const FREEZE_SECONDS = 6;
+        const FREEZE_SECONDS = 2;
         // ─────────────────────────────────────────────────────────
 
         let frozen = false;
 
         // In test mode, clear saved state on every page load so each refresh is a fresh test
+
+
         if (TEST_MODE) {
             sessionStorage.removeItem("codeSolved");
             sessionStorage.removeItem("codeFrozen");
         }
+
 
         const alreadySolved = sessionStorage.getItem("codeSolved") === "true";
         const alreadyFrozen = sessionStorage.getItem("codeFrozen") === "true";
@@ -118,11 +123,12 @@
 
             if (entered === SECRET_CODE) {
                 sessionStorage.setItem("codeSolved", "true");
+                // document.getElementById("correct-code").textContent = "Autentiseringen lyckades.";
                 document.getElementById("code-section").style.display = "none";
                 startFinalCountdown(FREEZE_SECONDS);
 
             } else {
-                document.getElementById("code-message").textContent = "Fel kod. Försök igen.";
+                document.getElementById("code-message").textContent = "Autentiseringen misslyckades. Försök igen.";
                 document.getElementById("code-input").value = "";
                 document.getElementById("code-input").focus();
             }
