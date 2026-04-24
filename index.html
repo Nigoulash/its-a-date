@@ -9,12 +9,75 @@
             text-align: center;
             background: #111;
             color: white;
-            margin-top: 300px;
         }
 
         #countdown {
             font-size: 40px;
-            margin-top: 20px;
+            margin-top: 300px;
+        }
+
+        /* ── Text reveal section ── */
+        #text-section {
+            display: none;
+            text-align: left;
+            margin: 80px auto;
+            max-width: 1200px;
+            padding: 0 40px;
+            font-family: 'Courier New', Courier, monospace;
+        }
+
+        #text-header {
+            font-size: 48px;
+            font-weight: bold;
+            margin-bottom: 40px;
+        }
+
+        #text-body {
+            font-size: 28px;
+            line-height: 1.8;
+            white-space: pre-wrap;
+        }
+
+        /* ── Code input ── */
+        #code-section {
+            display: none;
+            margin-top: 40px;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 16px;
+        }
+
+        #code-input-row {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        #code-section input {
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 20px;
+            background: #111;
+            color: white;
+            border: 1px solid white;
+            padding: 4px 8px;
+        }
+
+        #char-count {
+            font-size: 16px;
+            color: #aaa;
+        }
+
+        #code-message {
+            margin-top: 8px;
+            font-size: 16px;
+        }
+
+        /* ── Final message ── */
+        #final-text {
+            display: none;
+            margin-top: 40px;
+            font-size: 28px;
+            line-height: 1.8;
+            white-space: pre-wrap;
         }
     </style>
 </head>
@@ -22,42 +85,182 @@
 
     <div id="countdown"></div>
 
+    <div id="text-section">
+        <div id="text-header"></div>
+        <div id="text-body"></div>
+
+        <div id="code-section">
+            <div id="code-input-row">
+                <input id="code-input" type="text" maxlength="14" autofocus />
+                <span id="char-count">14 tecken</span>
+            </div>
+            <p id="code-message"></p>
+        </div>
+
+        <div id="final-text"></div>
+    </div>
+
     <script>
         const { DateTime } = luxon;
 
-        // 🔥 Set your target date here (UTC example)
-        const target = DateTime.fromISO("2026-04-25T20:00:00", { zone: "Europe/Berlin" });
+        // ── Settings ──────────────────────────────────────────────
+        const TEST_MODE = false;
+        const TEST_SECONDS = 5;
+
+        const target = TEST_MODE
+            ? DateTime.now().setZone("Europe/Stockholm").plus({ seconds: TEST_SECONDS })
+            : DateTime.fromISO("2026-04-25T20:00:00", { zone: "Europe/Stockholm" });
+        // ─────────────────────────────────────────────────────────
+
+        const header = "Vi har era vänner.";
+
+        const bodyText =
+            `Om ni vill se Nina och Nicholas vid liv igen behöver ni göra en sak för mig.
+Det finns något gömt i lägenheten som tillhör mig. Jag behöver er hjälp att hitta det.
+Jag hoppas att ingen får för sig att göra något dumt som att ringa polisen. Det är i så fall det sista ni gör. Ni lär inte behöva era mobiler alls så det bästa skulle nog vara om ni lade bort dem direkt. Jag håller koll på er. Om ni sköter er kanske jag låter er tala med era vänner.
+
+För att detta ska gå så smidigt som möjligt behöver ni ta på er olika roller. Om ni öppnar trälådan på hyllan till vänster finner ni kuvert med era namn på. Innanför finns uppdrag till var och en av er.
+
+När ni hittar vad jag söker kommer ni även finna en kod. Mata in koden i fältet nedanför så får ni vidare instruktioner för att befria era vänner.
+
+Spelet kan börja.`;
+
+        const finalText =
+            `Gratulerar. Ni har lyckats hitta vad jag har väntat så länge på att ha i min ägo, och som min son miste livet för. Nu återstår bara att ni överlämnar dokumenten till mig. I trälådan ni öppnade i början finns ett tomt kuvert. Lägg i de två dokumenten i kuvertet. På parkeringen utanför lägenheten finns en bil med registreringsnumret MKJ 119. Skjut in kuvertet genom fönsterspringan vid passagerarsätet. När jag ser att kuvertet är på plats släpper jag era vänner.`;
+
+        const SECRET_CODE = "T1961/0037-006";
+        const MAX_CHARS = 14;
+        const HEADER_CHAR_SPEED = 60;
+        const BODY_CHAR_SPEED = 40;
+        const FINAL_CHAR_SPEED = 40;
+        const PAUSE_AFTER_HEADER = 800;
+        const PERIOD_PAUSE = 400;
+
+        // ─────────────────────────────────────────────────────────
+
+        let frozen = false;
+
+        // Always clear state in test mode
+        if (TEST_MODE) {
+            sessionStorage.removeItem("countdownDone");
+        }
+
+        // If the target is still in the future, clear any leftover flag —
+        // prevents test mode state from bleeding into real mode
+        const nowCheck = DateTime.now().setZone("Europe/Stockholm");
+        if (target.diff(nowCheck, "seconds").seconds > 0) {
+            sessionStorage.removeItem("countdownDone");
+        }
+
+        if (sessionStorage.getItem("countdownDone") === "true") {
+            // Countdown already finished — show text instantly, no typewriter
+            showTextInstantly();
+        } else {
+            setInterval(updateCountdown, 1000);
+            updateCountdown();
+        }
+
+        // ── Countdown ────────────────────────────────────────────
 
         function updateCountdown() {
-            const now = DateTime.now().toUTC();
+            if (frozen) return;
 
-            if (now >= target) {
-                document.getElementById("countdown").innerHTML = "Time's up! 🎉";
+            const now = DateTime.now().setZone("Europe/Stockholm");
+            const totalSeconds = target.diff(now, "seconds").seconds;
+
+            if (totalSeconds <= 0) {
+                frozen = true;
+                document.getElementById("countdown").innerHTML = "0mån 0v 0d 0h 0m 0s";
+                sessionStorage.setItem("countdownDone", "true");
+                setTimeout(function () {
+                    document.getElementById("countdown").style.display = "none";
+                    startReveal();
+                }, 2000);
                 return;
             }
 
-            const diff = target.diff(now, [
-                "months",
-                "weeks",
-                "days",
-                "hours",
-                "minutes",
-                "seconds"
-            ]).toObject();
-
-            const months = Math.floor(diff.months);
-            const weeks = Math.floor(diff.weeks);
-            const days = Math.floor(diff.days);
-            const hours = Math.floor(diff.hours);
-            const minutes = Math.floor(diff.minutes);
-            const seconds = Math.floor(diff.seconds);
-
+            const diff = target.diff(now, ["months", "weeks", "days", "hours", "minutes", "seconds"]).toObject();
             document.getElementById("countdown").innerHTML =
-                `${months}mån ${weeks}v ${days}d ${hours}h ${minutes}m ${seconds}s`;
+                `${Math.floor(diff.months)}mån ${Math.floor(diff.weeks)}v ${Math.floor(diff.days)}d ${Math.floor(diff.hours)}h ${Math.floor(diff.minutes)}m ${Math.floor(diff.seconds)}s`;
         }
 
-        setInterval(updateCountdown, 1000);
-        updateCountdown();
+        // ── Reveal: typewriter (first time only) ─────────────────
+
+        function startReveal() {
+            document.getElementById("countdown").style.display = "none";
+            document.getElementById("text-section").style.display = "block";
+            typeText(document.getElementById("text-header"), header, HEADER_CHAR_SPEED, function () {
+                setTimeout(function () {
+                    typeText(document.getElementById("text-body"), bodyText, BODY_CHAR_SPEED, function () {
+                        document.getElementById("code-section").style.display = "block";
+                        document.getElementById("code-input").focus();
+                    });
+                }, PAUSE_AFTER_HEADER);
+            });
+        }
+
+        // ── Reveal: instant (on refresh after countdown finished) ─
+
+        function showTextInstantly() {
+            document.getElementById("countdown").style.display = "none";
+            document.getElementById("text-section").style.display = "block";
+            document.getElementById("text-header").textContent = header;
+            document.getElementById("text-body").textContent = bodyText;
+            document.getElementById("code-section").style.display = "block";
+            document.getElementById("code-input").focus();
+        }
+
+        // ── Typewriter ────────────────────────────────────────────
+
+        function typeText(element, text, speed, onDone) {
+            let i = 0;
+            function next() {
+                if (i < text.length) {
+                    const char = text[i];
+                    element.textContent += char;
+                    window.scrollTo(0, document.body.scrollHeight);
+                    i++;
+                    const delay = char === "." ? speed + PERIOD_PAUSE : speed;
+                    setTimeout(next, delay);
+                } else if (onDone) {
+                    onDone();
+                }
+            }
+            next();
+        }
+
+        // ── Character counter ─────────────────────────────────────
+
+        document.getElementById("code-input").addEventListener("input", function () {
+            const remaining = MAX_CHARS - this.value.length;
+            const counter = document.getElementById("char-count");
+            counter.textContent = remaining === MAX_CHARS ? `${MAX_CHARS} tecken` : `${remaining} tecken kvar`;
+        });
+
+        // ── Code check ───────────────────────────────────────────
+
+        document.getElementById("code-input").addEventListener("keydown", function (e) {
+            if (e.key === "Enter") checkCode();
+        });
+
+        function checkCode() {
+            const entered = document.getElementById("code-input").value;
+            if (entered === SECRET_CODE) {
+                //document.getElementById("code-section").style.display = "none";
+                document.getElementById("char-count").style.display = "none";
+                document.getElementById("code-message").textContent = "none";
+                const finalEl = document.getElementById("final-text");
+                finalEl.style.display = "block";
+                typeText(finalEl, finalText, FINAL_CHAR_SPEED, null);
+            } else {
+                document.getElementById("code-message").textContent = "Fel kod.";
+                window.scrollTo(0, document.body.scrollHeight);
+                document.getElementById("code-input").value = "";
+                document.getElementById("char-count").textContent = `${MAX_CHARS} tecken`;
+                document.getElementById("code-input").focus();
+            }
+        }
+
     </script>
 
 </body>
